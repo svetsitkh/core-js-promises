@@ -99,8 +99,8 @@ function getFirstPromiseResult(promises) {
  * [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)] => Promise fulfilled with [1, 2, 3]
  * [Promise.resolve(1), Promise.reject(2), Promise.resolve(3)] => Promise rejected with 2
  */
-function getAllOrNothing(/* promises */) {
-  throw new Error('Not implemented');
+function getAllOrNothing(promises) {
+  return Promise.all(promises);
 }
 
 /**
@@ -115,8 +115,13 @@ function getAllOrNothing(/* promises */) {
  * [Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)] => Promise fulfilled with [1, 2, 3]
  * [Promise.resolve(1), Promise.reject(2), Promise.resolve(3)]  => Promise fulfilled with [1, null, 3]
  */
-function getAllResult(/* promises */) {
-  throw new Error('Not implemented');
+function getAllResult(promises) {
+  return Promise.allSettled(promises).then((results) => {
+    return results.reduce((newResults, result) => {
+      newResults.push(result.status === 'fulfilled' ? result.value : null);
+      return newResults;
+    }, []);
+  });
 }
 
 /**
@@ -137,8 +142,21 @@ function getAllResult(/* promises */) {
  * [promise1, promise4, promise3] => Promise.resolved('104030')
  * [promise1, promise4, promise3, promise2] => Promise.resolved('10403020')
  */
-function queuPromises(/* promises */) {
-  throw new Error('Not implemented');
+function queuPromises(promises) {
+  return new Promise((resolve) => {
+    const promisesCount = promises.length;
+    let counter = 0;
+    const results = [];
+    promises.forEach((promise, index) => {
+      promise.then((value) => {
+        counter += 1;
+        results[index] = value;
+        if (counter === promisesCount) {
+          resolve(results);
+        }
+      });
+    });
+  }).then((results) => results.join(''));
 }
 
 module.exports = {
